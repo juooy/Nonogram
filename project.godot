@@ -1,0 +1,18 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the properties have these defaults with this particular type:
+; bool, int, float, String, StringName, NodePath, Color
+; or Array with specific element types.
+
+config_version=5
+
+[application]
+
+config/name="Nonogram"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/main_scene="res://scenes/Editor.tscn"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
