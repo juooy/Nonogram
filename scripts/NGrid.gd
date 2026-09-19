@@ -69,13 +69,13 @@ func _draw_cell(r: int, c: int) -> void:
 	else:
 		filled = (state[r][c] == 1)
 
-	draw_rect(rect, Color.BLACK if filled else Color.WHITE)
+	draw_rect(rect, AppTheme.INK if filled else Color.WHITE)
 
 	if mode == Mode.PLAY and state[r][c] == 2:
 		var m := rect.get_center()
 		var half := cell_px * 0.3
-		draw_line(m + Vector2(-half, -half), m + Vector2(half, half), Color(0.8, 0.2, 0.2), 2.0)
-		draw_line(m + Vector2(half, -half), m + Vector2(-half, half), Color(0.8, 0.2, 0.2), 2.0)
+		draw_line(m + Vector2(-half, -half), m + Vector2(half, half), AppTheme.MARK, 2.0)
+		draw_line(m + Vector2(half, -half), m + Vector2(-half, half), AppTheme.MARK, 2.0)
 
 func _draw_grid_lines() -> void:
 	var w := grid_size.x * cell_px

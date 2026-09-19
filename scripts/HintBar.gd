@@ -22,14 +22,17 @@ func set_hints(h: Array) -> void:
 
 ## 숫자 한 개가 차지하는 칸 폭(ROW) / 높이(COL)
 func slot_px() -> float:
-	return maxf(cell_px * 0.6, MIN_SLOT_PX)
+	return slot_px_for(cell_px)
+
+static func slot_px_for(cell: float) -> float:
+	return maxf(cell * 0.6, MIN_SLOT_PX)
 
 func font_size() -> int:
 	return int(clampf(cell_px * 0.5, 11.0, 24.0))
 
 ## line 번째 줄의 j 번째 숫자가 그려질 영역
 func slot_rect(line: int, j: int) -> Rect2:
-	var offset: int = _depth() - hints[line].size() + j
+	var offset: int = depth() - hints[line].size() + j
 	var s := slot_px()
 	if axis == Axis.ROW:
 		return Rect2(offset * s, line * cell_px, s, cell_px)
@@ -41,20 +44,21 @@ func _max_len() -> int:
 		m = maxi(m, line.size())
 	return m
 
-func _depth() -> int:
+## 숫자 칸 수 = max(가장 긴 줄, min_depth)
+func depth() -> int:
 	return maxi(_max_len(), min_depth)
 
 func _calc_min_size() -> Vector2:
 	if hints.is_empty():
 		return Vector2.ZERO
-	var depth := _depth() * slot_px()
+	var thick := depth() * slot_px()
 	var length := hints.size() * cell_px
-	return Vector2(depth, length) if axis == Axis.ROW else Vector2(length, depth)
+	return Vector2(thick, length) if axis == Axis.ROW else Vector2(length, thick)
 
 func _draw() -> void:
 	var font := get_theme_default_font()
 	var fs := font_size()
-	draw_rect(Rect2(Vector2.ZERO, size), Color(0.94, 0.94, 0.92))
+	draw_rect(Rect2(Vector2.ZERO, size), AppTheme.PANEL)
 	for i in hints.size():
 		# 5줄 단위로 음영을 번갈아 격자의 굵은 선과 맞춰 읽기 쉽게
 		if (i / 5) % 2 == 1:
@@ -66,4 +70,4 @@ func _draw() -> void:
 			var text := str(hints[i][j])
 			var baseline := r.position.y + (r.size.y + font.get_ascent(fs) - font.get_descent(fs)) * 0.5
 			draw_string(font, Vector2(r.position.x, baseline), text,
-				HORIZONTAL_ALIGNMENT_CENTER, r.size.x, fs, Color(0.15, 0.15, 0.15))
+				HORIZONTAL_ALIGNMENT_CENTER, r.size.x, fs, AppTheme.INK)
