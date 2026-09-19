@@ -2,6 +2,7 @@ extends SceneTree
 ## 씬 화면 캡처 (시각 확인용). --headless 없이 실행해야 렌더링된다.
 ## godot --path . -s res://tools/screenshot.gd -- <scene> <out.png> [solve]
 ##   Editor 씬: 하트 샘플을 그린다
+##   LevelSelect 씬: 임시 폴더에 샘플 레벨 3개를 넣어 목록을 찍는다 (끝나면 삭제)
 ##   Game 씬: 하트 샘플 레벨로 시작해 일부를 칠한다. solve 를 주면 끝까지 풀어 클리어 화면을 찍는다
 
 const HEART := [
@@ -20,6 +21,16 @@ func _initialize() -> void:
 		var lv := LevelData.from_solution(_heart(), Vector2i(10, 10))
 		lv.title = "하트"
 		node.level = lv
+	var tmp_dir := "user://screenshot_levels"
+	if "storage" in node:
+		var st := LevelStorage.new(tmp_dir)
+		var titles := ["하트", "고양이", "별"]
+		for i in titles.size():
+			var lv := LevelData.from_solution(_heart(), Vector2i(10, 10))
+			lv.id = "%d_0000" % (1000 + i)
+			lv.title = titles[i]
+			st.save(lv)
+		node.storage = st
 	root.add_child(node)
 	await process_frame
 
@@ -41,6 +52,10 @@ func _initialize() -> void:
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(out)
 	print("saved ", ProjectSettings.globalize_path(out))
+	if DirAccess.dir_exists_absolute(tmp_dir):
+		for f in DirAccess.get_files_at(tmp_dir):
+			DirAccess.remove_absolute(tmp_dir + "/" + f)
+		DirAccess.remove_absolute(tmp_dir)
 	quit()
 
 func _heart() -> Array:

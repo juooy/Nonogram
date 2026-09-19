@@ -28,6 +28,11 @@ theme_override_constants/separation = 12
 [node name="TopBar" type="HBoxContainer" parent="MarginContainer/VBox"]
 layout_mode = 2
 
+[node name="BackBtn" type="Button" parent="MarginContainer/VBox/TopBar"]
+visible = false
+layout_mode = 2
+text = "◀ 목록"
+
 [node name="Label" type="Label" parent="MarginContainer/VBox/TopBar"]
 layout_mode = 2
 text = "네모로직 에디터"
@@ -99,6 +104,7 @@ script = ExtResource("2")
 
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/PlayBtn" to="." method="_on_play_pressed"]
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/SaveBtn" to="." method="_on_save_pressed"]
+[connection signal="pressed" from="MarginContainer/VBox/TopBar/BackBtn" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/ClearBtn" to="." method="_on_clear_pressed"]
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/PrintBtn" to="." method="_on_print_pressed"]
 [connection signal="item_selected" from="MarginContainer/VBox/TopBar/SizeOption" to="." method="_on_size_option_item_selected"]

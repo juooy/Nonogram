@@ -1,5 +1,7 @@
 extends Control
 
+signal back_requested  # LevelSelect 에서 열었을 때 돌아가기
+
 @onready var grid: NGrid = $MarginContainer/VBox/GridArea/Board/NGrid
 @onready var row_hints: HintBar = $MarginContainer/VBox/GridArea/Board/RowHints
 @onready var col_hints: HintBar = $MarginContainer/VBox/GridArea/Board/ColHints
@@ -10,10 +12,12 @@ extends Control
 const GameScene := preload("res://scenes/Game.tscn")
 
 var storage := LevelStorage.new()
+var show_back := false  # 여는 쪽이 트리에 붙이기 전에 설정
 var current_id := ""  # 저장된 레벨을 편집 중이면 그 id — 재저장 시 덮어쓴다
 
 func _ready() -> void:
 	grid.solution_changed.connect(_refresh_hints)
+	$MarginContainer/VBox/TopBar/BackBtn.visible = show_back
 	_setup_size_options()
 	_refresh_hints()
 
@@ -88,6 +92,9 @@ func _on_size_option_item_selected(index: int) -> void:
 	grid.queue_redraw()
 	_refresh_hints()
 	_start_new_level()
+
+func _on_back_pressed() -> void:
+	back_requested.emit()
 
 func _on_print_pressed() -> void:
 	var level := grid.get_level_data()

@@ -112,3 +112,15 @@ func test_editor_play_refuses_empty_grid() -> void:
 	var ed := _editor_with_storage()
 	ed._on_play_pressed()
 	assert_true(ed.get_node_or_null("Game") == null)
+
+# ── 돌아가기 (Step 5) ─────────────────────────────────────
+func test_editor_back_hidden_when_standalone() -> void:
+	var ed := _editor()
+	assert_true(not ed.get_node("MarginContainer/VBox/TopBar/BackBtn").visible)
+
+func test_editor_back_emits_signal() -> void:
+	var ed := _editor()
+	var hits := [0]
+	ed.back_requested.connect(func(): hits[0] += 1)
+	ed._on_back_pressed()
+	assert_eq(hits[0], 1)
