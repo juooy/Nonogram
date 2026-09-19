@@ -45,6 +45,16 @@ text = "크기:"
 layout_mode = 2
 custom_minimum_size = Vector2(120, 0)
 
+[node name="TitleEdit" type="LineEdit" parent="MarginContainer/VBox/TopBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 0)
+placeholder_text = "레벨 제목"
+max_length = 40
+
+[node name="SaveBtn" type="Button" parent="MarginContainer/VBox/TopBar"]
+layout_mode = 2
+text = "저장"
+
 [node name="ClearBtn" type="Button" parent="MarginContainer/VBox/TopBar"]
 layout_mode = 2
 text = "초기화"
@@ -52,6 +62,10 @@ text = "초기화"
 [node name="PrintBtn" type="Button" parent="MarginContainer/VBox/TopBar"]
 layout_mode = 2
 text = "힌트 출력"
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
 
 [node name="GridArea" type="ScrollContainer" parent="MarginContainer/VBox"]
 layout_mode = 2
@@ -79,6 +93,7 @@ script = ExtResource("3")
 layout_mode = 2
 script = ExtResource("2")
 
+[connection signal="pressed" from="MarginContainer/VBox/TopBar/SaveBtn" to="." method="_on_save_pressed"]
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/ClearBtn" to="." method="_on_clear_pressed"]
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/PrintBtn" to="." method="_on_print_pressed"]
 [connection signal="item_selected" from="MarginContainer/VBox/TopBar/SizeOption" to="." method="_on_size_option_item_selected"]

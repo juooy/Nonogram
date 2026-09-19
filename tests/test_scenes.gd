@@ -48,3 +48,49 @@ func test_editor_clear_resets_hints() -> void:
 	ed._on_clear_pressed()
 	var rows: HintBar = ed.get_node(BOARD + "RowHints")
 	assert_eq(rows.hints[2], [0])
+
+# ── 저장 (Step 3) ─────────────────────────────────────────
+var _save_dir := ""
+
+func _editor_with_storage() -> Node:
+	var ed := _editor()
+	_save_dir = "user://test_editor_levels_%d" % randi()
+	ed.storage = LevelStorage.new(_save_dir)
+	return ed
+
+func cleanup() -> void:
+	super.cleanup()
+	if _save_dir != "" and DirAccess.dir_exists_absolute(_save_dir):
+		for f in DirAccess.get_files_at(_save_dir):
+			DirAccess.remove_absolute(_save_dir + "/" + f)
+		DirAccess.remove_absolute(_save_dir)
+
+func test_editor_save_writes_level() -> void:
+	var ed := _editor_with_storage()
+	var grid: NGrid = ed.get_node(BOARD + "NGrid")
+	grid.solution[0][0] = true
+	ed.get_node("MarginContainer/VBox/TopBar/TitleEdit").text = "점 하나"
+	ed._on_save_pressed()
+	var levels: Array = ed.storage.list()
+	assert_eq(levels.size(), 1, "saved")
+	assert_eq(levels[0].title, "점 하나", "title")
+
+func test_editor_resave_keeps_id_and_clear_starts_new() -> void:
+	var ed := _editor_with_storage()
+	var grid: NGrid = ed.get_node(BOARD + "NGrid")
+	grid.solution[0][0] = true
+	ed._on_save_pressed()
+	grid.solution[1][1] = true
+	ed._on_save_pressed()
+	assert_eq(ed.storage.list().size(), 1, "overwrite")
+	ed._on_clear_pressed()
+	grid.solution[2][2] = true
+	ed._on_save_pressed()
+	assert_eq(ed.storage.list().size(), 2, "new level after clear")
+
+func test_editor_refuses_empty_grid() -> void:
+	var ed := _editor_with_storage()
+	ed._on_save_pressed()
+	assert_eq(ed.storage.list().size(), 0, "not saved")
+	var status: Label = ed.get_node("MarginContainer/VBox/StatusLabel")
+	assert_true(status.text != "", "status message")
