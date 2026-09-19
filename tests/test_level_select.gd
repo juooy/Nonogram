@@ -27,6 +27,9 @@ func _select(st: LevelStorage) -> Node:
 func _rows(s: Node) -> Array:
 	return s.get_node("MarginContainer/VBox/Scroll/List").get_children()
 
+func _play(row: Node) -> Button:
+	return row.get_node("PlayBtn")
+
 func test_empty_state() -> void:
 	var s := _select(_storage())
 	assert_eq(_rows(s).size(), 0, "no rows")
@@ -39,15 +42,16 @@ func test_lists_levels_newest_first() -> void:
 	var s := _select(st)
 	var rows := _rows(s)
 	assert_eq(rows.size(), 2, "count")
-	assert_true(rows[0].text.contains("최신"), "newest first: " + rows[0].text)
-	assert_true(rows[0].text.contains("2×2"), "size shown")
+	var first: Button = _play(rows[0])
+	assert_true(first.text.contains("최신"), "newest first: " + first.text)
+	assert_true(first.text.contains("2×2"), "size shown")
 	assert_true(not s.get_node("MarginContainer/VBox/EmptyLabel").visible, "empty hidden")
 
 func test_pick_level_opens_game_and_back_returns() -> void:
 	var st := _storage()
 	_save(st, "1000_0001", "고양이")
 	var s := _select(st)
-	_rows(s)[0].pressed.emit()
+	_play(_rows(s)[0]).pressed.emit()
 	var game: Node = s.get_node_or_null("Game")
 	assert_true(game != null, "game opened")
 	assert_eq(game.level.title, "고양이", "level passed")
@@ -97,8 +101,65 @@ func test_theme_and_card_rows() -> void:
 	_save(st, "1000_0001", "a")
 	var s := _select(st)
 	assert_true(s.theme == AppTheme.get_theme(), "theme")
-	var row: Button = _rows(s)[0]
+	var row: Button = _play(_rows(s)[0])
 	assert_eq(row.theme_type_variation, &"CardButton", "card")
 	assert_true(row.get_combined_minimum_size().y >= AppTheme.BUTTON_MIN, "row height")
 	var new_btn: Button = s.get_node("MarginContainer/VBox/TopBar/NewBtn")
 	assert_true(new_btn.get_combined_minimum_size().y >= AppTheme.BUTTON_MIN, "new btn")
+
+# ── 편집·삭제 ─────────────────────────────────────────────
+func test_row_has_edit_and_delete_buttons() -> void:
+	var st := _storage()
+	_save(st, "1000_0001", "a")
+	var row: Node = _rows(_select(st))[0]
+	for n in ["PlayBtn", "EditBtn", "DeleteBtn"]:
+		var b: Button = row.get_node(n)
+		var sz := b.get_combined_minimum_size()
+		assert_true(sz.x >= AppTheme.BUTTON_MIN and sz.y >= AppTheme.BUTTON_MIN, "%s %s" % [n, sz])
+
+func test_delete_asks_confirmation() -> void:
+	var st := _storage()
+	_save(st, "1000_0001", "고양이")
+	var s := _select(st)
+	var confirm: Control = s.get_node("ConfirmPanel")
+	assert_true(not confirm.visible, "hidden at start")
+	_rows(s)[0].get_node("DeleteBtn").pressed.emit()
+	assert_true(confirm.visible, "confirm shown")
+	assert_true(s.confirm_label.text.contains("고양이"), "names level: " + s.confirm_label.text)
+	s._on_cancel_delete()
+	assert_true(not confirm.visible, "cancel hides")
+	assert_true(st.load_level("1000_0001") != null, "still exists")
+	_rows(s)[0].get_node("DeleteBtn").pressed.emit()
+	s._on_confirm_delete()
+	assert_true(not confirm.visible, "confirm hides")
+	assert_true(st.load_level("1000_0001") == null, "deleted")
+	assert_eq(_rows(s).size(), 0, "list refreshed")
+	assert_true(s.get_node("MarginContainer/VBox/EmptyLabel").visible, "empty label")
+
+func test_back_closes_confirm_first() -> void:
+	var st := _storage()
+	_save(st, "1000_0001", "a")
+	var s := _select(st)
+	_rows(s)[0].get_node("DeleteBtn").pressed.emit()
+	assert_true(s.go_back(), "handled")
+	assert_true(not s.get_node("ConfirmPanel").visible, "confirm closed")
+	assert_true(st.load_level("1000_0001") != null, "not deleted")
+
+func test_edit_opens_editor_with_level_and_overwrites() -> void:
+	var st := _storage()
+	_save(st, "1000_0001", "원래 제목")
+	var s := _select(st)
+	_rows(s)[0].get_node("EditBtn").pressed.emit()
+	var ed: Node = s.get_node_or_null("Editor")
+	assert_true(ed != null, "editor opened")
+	assert_eq(ed.current_id, "1000_0001", "id")
+	assert_eq(ed.title_edit.text, "원래 제목", "title")
+	assert_eq(ed.grid.grid_size, Vector2i(2, 2), "size")
+	assert_eq(ed.grid.solution, [[true, false], [false, true]], "solution")
+	ed.grid.solution[0][1] = true
+	ed.title_edit.text = "고친 제목"
+	ed._on_save_pressed()
+	assert_eq(st.list().size(), 1, "overwritten, not duplicated")
+	assert_eq(st.load_level("1000_0001").title, "고친 제목", "saved")
+	ed._on_back_pressed()
+	assert_true(_play(_rows(s)[0]).text.contains("고친 제목"), "list refreshed")

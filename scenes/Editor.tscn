@@ -52,7 +52,8 @@ layout_mode = 2
 icon = ExtResource("3")
 icon_alignment = 1
 
-[node name="TitleLabel" type="Label" parent="MarginContainer/HBox/Main/Header"]
+[node name="HeaderLabel" type="Label" parent="MarginContainer/HBox/Main/Header"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "레벨 만들기"

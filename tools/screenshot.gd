@@ -3,7 +3,7 @@ extends SceneTree
 ## godot --path . -s res://tools/screenshot.gd -- <scene> <out.png> [WxH] [solve]
 ##   WxH: 창 크기 (예: 1556x648 = Pixel 5a 비율). 생략 시 프로젝트 기본 1152x648
 ##   Editor 씬: 하트 샘플을 그린다
-##   LevelSelect 씬: 임시 폴더에 샘플 레벨 3개를 넣어 목록을 찍는다 (끝나면 삭제)
+##   LevelSelect 씬: 임시 폴더에 샘플 레벨 3개를 넣어 목록을 찍는다 (끝나면 삭제). confirm 플래그로 삭제 확인 패널
 ##   Game 씬: 하트 샘플 레벨로 시작해 일부를 칠한다. solve 를 주면 끝까지 풀어 클리어 화면을 찍는다
 
 const HEART := [
@@ -40,6 +40,8 @@ func _initialize() -> void:
 		node.storage = st
 	root.add_child(node)
 	await process_frame
+	if "confirm" in args and node.has_method("_ask_delete"):
+		node._ask_delete(node.storage.list()[0])
 
 	var grid := node.find_child("NGrid", true, false) as NGrid
 	if grid and grid.mode == NGrid.Mode.EDIT:

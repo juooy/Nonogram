@@ -145,3 +145,19 @@ func test_editor_touch_targets_and_theme() -> void:
 	for b in ed.find_children("*", "BaseButton", true, false):
 		var s: Vector2 = b.get_combined_minimum_size()
 		assert_true(s.x >= AppTheme.BUTTON_MIN and s.y >= AppTheme.BUTTON_MIN, "%s %s" % [b.name, s])
+
+# ── 레벨 편집 ─────────────────────────────────────────────
+func test_editor_load_level_sets_size_and_header() -> void:
+	var ed := _editor()
+	var lv := LevelData.from_solution([[true, false, false, false, false], [false, false, false, false, false],
+		[false, false, false, false, false], [false, false, false, false, false], [false, false, false, false, true]], Vector2i(5, 5))
+	lv.id = "1000_0001"
+	lv.title = "점 두 개"
+	ed.load_level(lv)
+	assert_eq(ed.size_option.selected, 0, "5x5 option")
+	assert_eq(ed.grid.grid_size, Vector2i(5, 5), "grid size")
+	assert_eq(ed.board.row_hints.hints[0], [1], "hints refreshed")
+	assert_eq(ed.header_label.text, "레벨 편집", "header edit")
+	ed._on_clear_pressed()
+	assert_eq(ed.current_id, "", "new level after clear")
+	assert_eq(ed.header_label.text, "레벨 만들기", "header new")

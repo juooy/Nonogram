@@ -50,6 +50,9 @@ static func _build() -> Theme:
 	t.set_type_variation("SegmentButton", "Button")  # 토글: 눌린 쪽이 ACCENT
 	_button_type(t, "SegmentButton", BUTTON_BASE, ACCENT, INK, Color.WHITE)
 
+	t.set_type_variation("DangerButton", "Button")  # 삭제 등 되돌릴 수 없는 동작
+	_button_type(t, "DangerButton", MARK, MARK.darkened(0.15), Color.WHITE, Color.WHITE)
+
 	t.set_type_variation("CardButton", "Button")  # 목록 행
 	_button_type(t, "CardButton", PANEL, BUTTON_BASE, INK, INK)
 

@@ -12,10 +12,12 @@ const SIZES := [Vector2i(5, 5), Vector2i(10, 10), Vector2i(15, 15)]
 @onready var title_edit: LineEdit = %TitleEdit
 @onready var status_label: Label = %StatusLabel
 @onready var back_btn: Button = %BackBtn
+@onready var header_label: Label = %HeaderLabel
 
 var storage := LevelStorage.new()
 var show_back := false  # 여는 쪽이 트리에 붙이기 전에 설정
 var current_id := ""  # 저장된 레벨을 편집 중이면 그 id — 재저장 시 덮어쓴다
+var edit_level: LevelData  # 여는 쪽이 트리에 붙이기 전에 설정하면 그 레벨을 편집
 
 func _ready() -> void:
 	theme = AppTheme.get_theme()
@@ -23,6 +25,22 @@ func _ready() -> void:
 	grid.solution_changed.connect(_refresh_hints)
 	board_area.resized.connect(_fit_board)
 	_setup_size_options()
+	_refresh_hints()
+	_fit_board()
+	if edit_level:
+		load_level(edit_level)
+
+## 저장된 레벨을 불러와 편집한다. 저장하면 같은 id 로 덮어쓴다.
+func load_level(level: LevelData) -> void:
+	grid.grid_size = level.grid_size
+	grid._init_arrays()
+	grid.solution = level.solution.duplicate(true)
+	grid.queue_redraw()
+	size_option.selected = SIZES.find(level.grid_size)
+	title_edit.text = level.title
+	current_id = level.id
+	header_label.text = "레벨 편집"
+	status_label.text = ""
 	_refresh_hints()
 	_fit_board()
 
@@ -47,6 +65,7 @@ func _on_clear_pressed() -> void:
 
 func _start_new_level() -> void:
 	current_id = ""
+	header_label.text = "레벨 만들기"
 	title_edit.text = ""
 	status_label.text = ""
 

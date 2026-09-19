@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/LevelSelectScene.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/icons/plus.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/icons/trash.png" id="3"]
 
 [node name="LevelSelect" type="Control"]
 layout_mode = 3
@@ -65,4 +66,51 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
+[node name="ConfirmPanel" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.45)
+
+[node name="Center" type="CenterContainer" parent="ConfirmPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Panel" type="PanelContainer" parent="ConfirmPanel/Center"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="ConfirmPanel/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ConfirmLabel" type="Label" parent="ConfirmPanel/Center/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="ConfirmPanel/Center/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CancelBtn" type="Button" parent="ConfirmPanel/Center/Panel/VBox/Buttons"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "취소"
+
+[node name="DeleteBtn" type="Button" parent="ConfirmPanel/Center/Panel/VBox/Buttons"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"DangerButton"
+text = "삭제"
+icon = ExtResource("3")
+
+[connection signal="pressed" from="ConfirmPanel/Center/Panel/VBox/Buttons/CancelBtn" to="." method="_on_cancel_delete"]
+[connection signal="pressed" from="ConfirmPanel/Center/Panel/VBox/Buttons/DeleteBtn" to="." method="_on_confirm_delete"]
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/NewBtn" to="." method="_on_new_pressed"]
