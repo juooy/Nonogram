@@ -10,6 +10,9 @@ const MIN_SLOT_PX := 16.0
 @export var cell_px: float = 40.0
 
 var hints: Array = []  # Array[Array[int]] — 줄마다 힌트 숫자 목록
+## 최소 숫자 칸 수. 에디터는 격자 크기로 나올 수 있는 최대치를 예약해
+## 그리는 도중 바가 커져 격자가 밀리는 것(=드래그 중 엉뚱한 칸 입력)을 막는다.
+var min_depth: int = 0
 
 func set_hints(h: Array) -> void:
 	hints = h
@@ -26,7 +29,7 @@ func font_size() -> int:
 
 ## line 번째 줄의 j 번째 숫자가 그려질 영역
 func slot_rect(line: int, j: int) -> Rect2:
-	var offset: int = _max_len() - hints[line].size() + j
+	var offset: int = _depth() - hints[line].size() + j
 	var s := slot_px()
 	if axis == Axis.ROW:
 		return Rect2(offset * s, line * cell_px, s, cell_px)
@@ -38,10 +41,13 @@ func _max_len() -> int:
 		m = maxi(m, line.size())
 	return m
 
+func _depth() -> int:
+	return maxi(_max_len(), min_depth)
+
 func _calc_min_size() -> Vector2:
 	if hints.is_empty():
 		return Vector2.ZERO
-	var depth := _max_len() * slot_px()
+	var depth := _depth() * slot_px()
 	var length := hints.size() * cell_px
 	return Vector2(depth, length) if axis == Axis.ROW else Vector2(length, depth)
 

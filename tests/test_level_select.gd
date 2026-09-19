@@ -69,3 +69,24 @@ func test_new_level_opens_editor_and_back_refreshes() -> void:
 	ed._on_back_pressed()
 	assert_true(ed.is_queued_for_deletion(), "editor closed")
 	assert_eq(_rows(s).size(), 1, "list refreshed")
+
+# ── 안드로이드 뒤로가기 ───────────────────────────────────
+func test_back_at_root_returns_false() -> void:
+	var s := _select(_storage())
+	assert_true(not s.go_back(), "root → 종료 신호")
+
+func test_back_closes_top_screen_only() -> void:
+	var st := _storage()
+	var s := _select(st)
+	s._on_new_pressed()
+	var ed: Node = s.get_node("Editor")
+	ed.storage = st
+	ed.grid.solution[0][0] = true
+	ed._on_play_pressed()
+	var game: Node = ed.get_node("Game")
+	assert_true(s.go_back(), "handled")
+	assert_true(game.is_queued_for_deletion(), "game closed")
+	assert_true(not ed.is_queued_for_deletion(), "editor stays")
+	assert_true(s.go_back(), "handled again")
+	assert_true(ed.is_queued_for_deletion(), "editor closed")
+	assert_true(s.get_node("MarginContainer").visible, "list visible")

@@ -32,6 +32,9 @@ func _refresh_hints() -> void:
 	var level := grid.get_level_data()
 	row_hints.cell_px = grid.cell_px
 	col_hints.cell_px = grid.cell_px
+	# 한 줄 힌트 개수의 최대치 = ceil(길이/2) — 미리 예약해 격자가 밀리지 않게
+	row_hints.min_depth = ceili(grid.grid_size.x / 2.0)
+	col_hints.min_depth = ceili(grid.grid_size.y / 2.0)
 	row_hints.set_hints(level.row_hints)
 	col_hints.set_hints(level.col_hints)
 

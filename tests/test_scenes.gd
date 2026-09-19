@@ -124,3 +124,19 @@ func test_editor_back_emits_signal() -> void:
 	ed.back_requested.connect(func(): hits[0] += 1)
 	ed._on_back_pressed()
 	assert_eq(hits[0], 1)
+
+# ── 실기기 피드백 (격자 밀림) ─────────────────────────────
+func test_editor_board_does_not_shift_while_drawing() -> void:
+	var ed := _editor()
+	var grid: NGrid = ed.get_node(BOARD + "NGrid")
+	var cols: HintBar = ed.get_node(BOARD + "ColHints")
+	var rows: HintBar = ed.get_node(BOARD + "RowHints")
+	var col_h := cols.custom_minimum_size.y
+	var row_w := rows.custom_minimum_size.x
+	for r in [0, 2, 4, 6, 8]:
+		grid.solution[r][0] = true  # 0열 힌트 5개, 0행은 그대로
+	for c in [0, 2, 4, 6, 8]:
+		grid.solution[0][c] = true  # 0행 힌트 5개
+	grid.solution_changed.emit()
+	assert_eq(cols.custom_minimum_size.y, col_h, "col bar height fixed")
+	assert_eq(rows.custom_minimum_size.x, row_w, "row bar width fixed")

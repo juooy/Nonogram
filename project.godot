@@ -9,10 +9,19 @@ config_version=5
 [application]
 
 config/name="Nonogram"
+config/quit_on_go_back=false
+config/icon="res://icon.svg"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 run/main_scene="res://scenes/LevelSelect.tscn"
 
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
 [rendering]
+
+textures/vram_compression/import_etc2_astc=true
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"

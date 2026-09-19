@@ -39,3 +39,20 @@ func test_slot_scales_with_cell_but_has_floor() -> void:
 	var big := _make(HintBar.Axis.ROW, [[1]], 60.0)
 	assert_true(small.slot_px() >= HintBar.MIN_SLOT_PX, "floor")
 	assert_true(big.slot_px() > small.slot_px(), "scales")
+
+func test_min_depth_reserves_space() -> void:
+	# 에디터에서 그리는 중 힌트 개수가 늘어도 바 크기가 변하지 않아야 격자가 밀리지 않는다
+	var b := _make(HintBar.Axis.COL, [[0], [0]])
+	b.min_depth = 3
+	b.set_hints([[0], [0]])
+	var before := b.custom_minimum_size
+	b.set_hints([[1, 1, 1], [0]])
+	assert_eq(b.custom_minimum_size, before, "size fixed")
+	assert_eq(b.custom_minimum_size.y, 3 * b.slot_px(), "depth 3")
+
+func test_min_depth_keeps_numbers_grid_aligned() -> void:
+	var b := _make(HintBar.Axis.ROW, [[5]])
+	b.min_depth = 3
+	b.set_hints([[5]])
+	var s := b.slot_px()
+	assert_eq(b.slot_rect(0, 0).position.x, 2 * s, "rightmost slot")

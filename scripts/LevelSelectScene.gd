@@ -13,6 +13,26 @@ var storage := LevelStorage.new()
 func _ready() -> void:
 	refresh()
 
+# 안드로이드 뒤로가기 (project.godot 의 quit_on_go_back=false 전제).
+# 알림은 모든 노드에 전파되므로 루트인 이 화면에서만 처리한다.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and not go_back():
+		get_tree().quit()
+
+## 가장 위에 열린 화면을 닫는다. 닫을 게 없으면(목록 화면) false.
+func go_back() -> bool:
+	var top := _top_screen(self)
+	if top == self:
+		return false
+	top.back_requested.emit()
+	return true
+
+func _top_screen(node: Node) -> Node:
+	for child in node.get_children():
+		if child.has_signal("back_requested") and not child.is_queued_for_deletion():
+			return _top_screen(child)
+	return node
+
 func refresh() -> void:
 	for child in list_box.get_children():
 		list_box.remove_child(child)
