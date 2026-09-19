@@ -60,9 +60,19 @@ static func from_dict(d: Dictionary) -> LevelData:
 	level.id = d.get("id", "")
 	level.title = d.get("title", "무제")
 	var sz = d.get("grid_size", {"x": 10, "y": 10})
-	level.grid_size = Vector2i(sz["x"], sz["y"])
+	level.grid_size = Vector2i(int(sz["x"]), int(sz["y"]))
 	level.solution = d.get("solution", [])
-	level.row_hints = d.get("row_hints", [])
-	level.col_hints = d.get("col_hints", [])
-	level.play_count = d.get("play_count", 0)
+	level.row_hints = _to_int_lines(d.get("row_hints", []))
+	level.col_hints = _to_int_lines(d.get("col_hints", []))
+	level.play_count = int(d.get("play_count", 0))
 	return level
+
+# JSON 파싱은 숫자를 float 로 돌려주므로 힌트를 int 로 되돌린다
+static func _to_int_lines(lines: Array) -> Array:
+	var result := []
+	for line in lines:
+		var ints := []
+		for v in line:
+			ints.append(int(v))
+		result.append(ints)
+	return result
