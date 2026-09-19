@@ -18,6 +18,7 @@ run/main_scene="res://scenes/LevelSelect.tscn"
 
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=4
 
 [rendering]
 
