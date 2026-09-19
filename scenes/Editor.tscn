@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/EditorScene.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/NGrid.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/HintBar.gd" id="3"]
 
 [node name="Editor" type="Control"]
 layout_mode = 3
@@ -56,15 +57,27 @@ text = "힌트 출력"
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="NGrid" type="Control" parent="MarginContainer/VBox/GridArea"]
+[node name="Board" type="GridContainer" parent="MarginContainer/VBox/GridArea"]
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="Corner" type="Control" parent="MarginContainer/VBox/GridArea/Board"]
+layout_mode = 2
+
+[node name="ColHints" type="Control" parent="MarginContainer/VBox/GridArea/Board"]
+layout_mode = 2
+script = ExtResource("3")
+axis = 1
+
+[node name="RowHints" type="Control" parent="MarginContainer/VBox/GridArea/Board"]
+layout_mode = 2
+script = ExtResource("3")
+
+[node name="NGrid" type="Control" parent="MarginContainer/VBox/GridArea/Board"]
 layout_mode = 2
 script = ExtResource("2")
-
-[node name="HintsLabel" type="Label" parent="MarginContainer/VBox"]
-layout_mode = 2
-text = "(그리면 힌트가 여기 표시됩니다)"
-theme_override_font_sizes/font_size = 13
-autowrap_mode = 3
 
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/ClearBtn" to="." method="_on_clear_pressed"]
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/PrintBtn" to="." method="_on_print_pressed"]

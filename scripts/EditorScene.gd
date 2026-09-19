@@ -1,12 +1,14 @@
 extends Control
 
-@onready var grid: NGrid = $MarginContainer/VBox/GridArea/NGrid
-@onready var hints_label: Label = $MarginContainer/VBox/HintsLabel
+@onready var grid: NGrid = $MarginContainer/VBox/GridArea/Board/NGrid
+@onready var row_hints: HintBar = $MarginContainer/VBox/GridArea/Board/RowHints
+@onready var col_hints: HintBar = $MarginContainer/VBox/GridArea/Board/ColHints
 @onready var size_option: OptionButton = $MarginContainer/VBox/TopBar/SizeOption
 
 func _ready() -> void:
-	grid.solution_changed.connect(_on_solution_changed)
+	grid.solution_changed.connect(_refresh_hints)
 	_setup_size_options()
+	_refresh_hints()
 
 func _setup_size_options() -> void:
 	size_option.clear()
@@ -15,12 +17,12 @@ func _setup_size_options() -> void:
 	size_option.add_item("15 × 15", 2)
 	size_option.selected = 1  # 10×10 기본
 
-func _on_solution_changed() -> void:
+func _refresh_hints() -> void:
 	var level := grid.get_level_data()
-	var lines: Array[String] = []
-	lines.append("행 힌트: " + str(level.row_hints))
-	lines.append("열 힌트: " + str(level.col_hints))
-	hints_label.text = "\n".join(lines)
+	row_hints.cell_px = grid.cell_px
+	col_hints.cell_px = grid.cell_px
+	row_hints.set_hints(level.row_hints)
+	col_hints.set_hints(level.col_hints)
 
 func _on_clear_pressed() -> void:
 	grid.clear()
@@ -33,7 +35,7 @@ func _on_size_option_item_selected(index: int) -> void:
 	grid.custom_minimum_size = Vector2(grid.grid_size.x, grid.grid_size.y) * grid.cell_px
 	grid.size = grid.custom_minimum_size
 	grid.queue_redraw()
-	hints_label.text = ""
+	_refresh_hints()
 
 func _on_print_pressed() -> void:
 	var level := grid.get_level_data()
