@@ -9,7 +9,12 @@ enum Mode { PLAY, EDIT }
 var solution: Array = []  # Array[Array[bool]]  — 정답 (EDIT에서 작성)
 var state: Array = []     # Array[Array[int]]   — 0 빈칸 1 채움 2 X표시 (PLAY)
 
+var interactive: bool = true  # false 면 입력 무시 (클리어 후 잠금)
+var pen: int = 1  # PLAY 모드 주 입력(좌클릭·터치)이 놓는 값: 1 채움 / 2 X표시. 우클릭은 항상 X
+
 var _drag_value: int = -1  # 드래그 중 덮어쓸 값
+var _target_rows: Array = []  # PLAY 판정용 힌트 — 정답 그림이 아니라 힌트 일치로 판정
+var _target_cols: Array = []
 
 signal completed
 signal solution_changed  # EDIT 모드에서 셀 변경 시
@@ -34,6 +39,8 @@ func _init_arrays() -> void:
 func load_level(level: LevelData) -> void:
 	grid_size = level.grid_size
 	solution = level.solution.duplicate(true)
+	_target_rows = LevelData._calc_rows(solution, grid_size)
+	_target_cols = LevelData._calc_cols(solution, grid_size)
 	_init_state()
 	custom_minimum_size = Vector2(grid_size.x, grid_size.y) * cell_px
 	size = custom_minimum_size
@@ -89,7 +96,11 @@ func _draw_grid_lines() -> void:
 		draw_line(Vector2(0, y), Vector2(w, y), col, lw)
 
 # ── 입력 ─────────────────────────────────────────────────
+# 터치는 Godot 기본 마우스 에뮬레이션(emulate_mouse_from_touch)으로 들어온다.
+# InputEventScreenTouch 를 따로 처리하면 한 번 탭에 두 번 토글되므로 받지 않는다.
 func _gui_input(event: InputEvent) -> void:
+	if not interactive:
+		return
 	if event is InputEventMouseButton:
 		if event.pressed:
 			var cell := _cell_at(event.position)
@@ -100,7 +111,7 @@ func _gui_input(event: InputEvent) -> void:
 				_drag_value = 1 if solution[cell.y][cell.x] else 0
 				solution_changed.emit()
 			else:
-				var next := 1 if event.button_index == MOUSE_BUTTON_LEFT else 2
+				var next := pen if event.button_index == MOUSE_BUTTON_LEFT else 2
 				state[cell.y][cell.x] = 0 if state[cell.y][cell.x] == next else next
 				_drag_value = state[cell.y][cell.x]
 				_check_complete()
@@ -120,21 +131,12 @@ func _gui_input(event: InputEvent) -> void:
 			_check_complete()
 		queue_redraw()
 
-	# 터치 지원
-	elif event is InputEventScreenTouch:
-		if event.pressed:
-			var cell := _cell_at(event.position)
-			if not _in_bounds(cell):
-				return
-			if mode == Mode.EDIT:
-				solution[cell.y][cell.x] = not solution[cell.y][cell.x]
-				solution_changed.emit()
-			else:
-				state[cell.y][cell.x] = 0 if state[cell.y][cell.x] == 1 else 1
-				_check_complete()
-			queue_redraw()
-
 # ── 유틸 ──────────────────────────────────────────────────
+## 격자 크기별 셀 픽셀 (에디터·플레이 공통)
+static func cell_px_for(sz: Vector2i) -> float:
+	var n := maxi(sz.x, sz.y)
+	return 60.0 if n <= 5 else (40.0 if n <= 10 else 28.0)
+
 func _cell_at(pos: Vector2) -> Vector2i:
 	return Vector2i(int(pos.x / cell_px), int(pos.y / cell_px))
 
@@ -142,11 +144,20 @@ func _in_bounds(c: Vector2i) -> bool:
 	return c.x >= 0 and c.x < grid_size.x and c.y >= 0 and c.y < grid_size.y
 
 func _check_complete() -> void:
-	for r in grid_size.y:
-		for c in grid_size.x:
-			if (state[r][c] == 1) != solution[r][c]:
-				return
-	completed.emit()
+	if _target_rows.is_empty():
+		_target_rows = LevelData._calc_rows(solution, grid_size)
+		_target_cols = LevelData._calc_cols(solution, grid_size)
+	var filled := []
+	for row in state:
+		filled.append(row.map(func(v): return v == 1))
+	var rows_ok := LevelData._calc_rows(filled, grid_size) == _target_rows
+	if rows_ok and LevelData._calc_cols(filled, grid_size) == _target_cols:
+		completed.emit()
+
+func reset_state() -> void:
+	_init_state()
+	_drag_value = -1
+	queue_redraw()
 
 func get_level_data() -> LevelData:
 	return LevelData.from_solution(solution, grid_size)

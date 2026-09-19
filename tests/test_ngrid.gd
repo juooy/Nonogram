@@ -105,3 +105,26 @@ func test_get_level_data_hints() -> void:
 	var g := _make(NGrid.Mode.EDIT, Vector2i(3, 1))
 	g.solution[0] = [true, false, true]
 	assert_eq(g.get_level_data().row_hints, [[1, 1]])
+
+func test_screen_touch_not_double_handled() -> void:
+	# 터치는 마우스 에뮬레이션으로 처리한다 — ScreenTouch 를 따로 받으면 한 번 탭에 두 번 토글된다
+	var g := _make(NGrid.Mode.EDIT)
+	var e := InputEventScreenTouch.new()
+	e.pressed = true
+	e.position = _center(0, 0)
+	g._gui_input(e)
+	assert_true(not g.solution[0][0])
+
+func test_non_interactive_ignores_input() -> void:
+	var g := _make(NGrid.Mode.PLAY)
+	g.interactive = false
+	_press(g, 0, 0)
+	assert_eq(g.state[0][0], 0)
+
+func test_reset_state_clears_play_marks() -> void:
+	var g := _make(NGrid.Mode.PLAY, Vector2i(2, 2))
+	g.load_level(LevelData.from_solution([[true, false], [false, true]], Vector2i(2, 2)))
+	_press(g, 0, 0)
+	_release(g)
+	g.reset_state()
+	assert_eq(g.state, [[0, 0], [0, 0]])

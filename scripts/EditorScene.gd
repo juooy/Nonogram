@@ -7,6 +7,8 @@ extends Control
 @onready var title_edit: LineEdit = $MarginContainer/VBox/TopBar/TitleEdit
 @onready var status_label: Label = $MarginContainer/VBox/StatusLabel
 
+const GameScene := preload("res://scenes/Game.tscn")
+
 var storage := LevelStorage.new()
 var current_id := ""  # 저장된 레벨을 편집 중이면 그 id — 재저장 시 덮어쓴다
 
@@ -52,6 +54,24 @@ func _on_save_pressed() -> void:
 	current_id = level.id
 	status_label.text = "저장됨: %s" % level.title
 
+## 현재 그림으로 테스트 플레이 — 에디터 상태는 그대로 두고 위에 Game 을 띄운다
+func _on_play_pressed() -> void:
+	if not _has_filled_cell():
+		status_label.text = "빈 격자는 플레이할 수 없습니다."
+		return
+	var level := grid.get_level_data()
+	level.title = title_edit.text.strip_edges() if title_edit.text.strip_edges() != "" else "테스트 플레이"
+	var game := GameScene.instantiate()
+	game.name = "Game"
+	game.level = level
+	game.back_requested.connect(_close_game.bind(game))
+	$MarginContainer.visible = false
+	add_child(game)
+
+func _close_game(game: Node) -> void:
+	game.queue_free()
+	$MarginContainer.visible = true
+
 func _has_filled_cell() -> bool:
 	for row in grid.solution:
 		if row.has(true):
@@ -61,7 +81,7 @@ func _has_filled_cell() -> bool:
 func _on_size_option_item_selected(index: int) -> void:
 	var sizes := [Vector2i(5, 5), Vector2i(10, 10), Vector2i(15, 15)]
 	grid.grid_size = sizes[index]
-	grid.cell_px = 60.0 if index == 0 else (40.0 if index == 1 else 28.0)
+	grid.cell_px = NGrid.cell_px_for(grid.grid_size)
 	grid._init_arrays()
 	grid.custom_minimum_size = Vector2(grid.grid_size.x, grid.grid_size.y) * grid.cell_px
 	grid.size = grid.custom_minimum_size

@@ -94,3 +94,21 @@ func test_editor_refuses_empty_grid() -> void:
 	assert_eq(ed.storage.list().size(), 0, "not saved")
 	var status: Label = ed.get_node("MarginContainer/VBox/StatusLabel")
 	assert_true(status.text != "", "status message")
+
+# ── 테스트 플레이 (Step 4) ────────────────────────────────
+func test_editor_play_opens_game_and_back_returns() -> void:
+	var ed := _editor_with_storage()
+	var grid: NGrid = ed.get_node(BOARD + "NGrid")
+	grid.solution[0][0] = true
+	ed._on_play_pressed()
+	var game: Node = ed.get_node_or_null("Game")
+	assert_true(game != null, "game opened")
+	assert_eq(game.get_node(BOARD + "NGrid").grid_size, grid.grid_size, "same level")
+	game._on_back_pressed()
+	assert_true(game.is_queued_for_deletion(), "game closed")
+	assert_true(ed.get_node("MarginContainer").visible, "editor visible")
+
+func test_editor_play_refuses_empty_grid() -> void:
+	var ed := _editor_with_storage()
+	ed._on_play_pressed()
+	assert_true(ed.get_node_or_null("Game") == null)

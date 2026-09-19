@@ -55,6 +55,10 @@ max_length = 40
 layout_mode = 2
 text = "저장"
 
+[node name="PlayBtn" type="Button" parent="MarginContainer/VBox/TopBar"]
+layout_mode = 2
+text = "플레이"
+
 [node name="ClearBtn" type="Button" parent="MarginContainer/VBox/TopBar"]
 layout_mode = 2
 text = "초기화"
@@ -93,6 +97,7 @@ script = ExtResource("3")
 layout_mode = 2
 script = ExtResource("2")
 
+[connection signal="pressed" from="MarginContainer/VBox/TopBar/PlayBtn" to="." method="_on_play_pressed"]
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/SaveBtn" to="." method="_on_save_pressed"]
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/ClearBtn" to="." method="_on_clear_pressed"]
 [connection signal="pressed" from="MarginContainer/VBox/TopBar/PrintBtn" to="." method="_on_print_pressed"]
