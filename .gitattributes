@@ -1,0 +1,2 @@
+# Godot 권장: 줄바꿈 LF 고정 (Windows autocrlf 로 test.sh 가 CRLF 가 되면 bash 실행 실패)
+* text=auto eol=lf
