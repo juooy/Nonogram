@@ -2,41 +2,44 @@ extends Control
 
 signal back_requested  # LevelSelect 에서 열었을 때 돌아가기
 
-@onready var grid: NGrid = $MarginContainer/VBox/GridArea/Board/NGrid
-@onready var row_hints: HintBar = $MarginContainer/VBox/GridArea/Board/RowHints
-@onready var col_hints: HintBar = $MarginContainer/VBox/GridArea/Board/ColHints
-@onready var size_option: OptionButton = $MarginContainer/VBox/TopBar/SizeOption
-@onready var title_edit: LineEdit = $MarginContainer/VBox/TopBar/TitleEdit
-@onready var status_label: Label = $MarginContainer/VBox/StatusLabel
-
 const GameScene := preload("res://scenes/Game.tscn")
+const SIZES := [Vector2i(5, 5), Vector2i(10, 10), Vector2i(15, 15)]
+
+@onready var board: Board = %Board
+@onready var grid: NGrid = board.grid
+@onready var board_area: Control = %BoardArea
+@onready var size_option: OptionButton = %SizeOption
+@onready var title_edit: LineEdit = %TitleEdit
+@onready var status_label: Label = %StatusLabel
+@onready var back_btn: Button = %BackBtn
 
 var storage := LevelStorage.new()
 var show_back := false  # 여는 쪽이 트리에 붙이기 전에 설정
 var current_id := ""  # 저장된 레벨을 편집 중이면 그 id — 재저장 시 덮어쓴다
 
 func _ready() -> void:
+	theme = AppTheme.get_theme()
+	back_btn.visible = show_back
 	grid.solution_changed.connect(_refresh_hints)
-	$MarginContainer/VBox/TopBar/BackBtn.visible = show_back
+	board_area.resized.connect(_fit_board)
 	_setup_size_options()
 	_refresh_hints()
+	_fit_board()
 
 func _setup_size_options() -> void:
 	size_option.clear()
-	size_option.add_item("5 × 5",  0)
-	size_option.add_item("10 × 10", 1)
-	size_option.add_item("15 × 15", 2)
+	for sz in SIZES:
+		size_option.add_item("%d × %d" % [sz.x, sz.y])
 	size_option.selected = 1  # 10×10 기본
 
 func _refresh_hints() -> void:
 	var level := grid.get_level_data()
-	row_hints.cell_px = grid.cell_px
-	col_hints.cell_px = grid.cell_px
-	# 한 줄 힌트 개수의 최대치 = ceil(길이/2) — 미리 예약해 격자가 밀리지 않게
-	row_hints.min_depth = ceili(grid.grid_size.x / 2.0)
-	col_hints.min_depth = ceili(grid.grid_size.y / 2.0)
-	row_hints.set_hints(level.row_hints)
-	col_hints.set_hints(level.col_hints)
+	# 한 줄 힌트 개수의 최대치 = ceil(길이/2) — 미리 예약해 그리는 중 격자가 밀리지 않게
+	board.set_min_depth(ceili(grid.grid_size.x / 2.0), ceili(grid.grid_size.y / 2.0))
+	board.set_hints(level.row_hints, level.col_hints)
+
+func _fit_board() -> void:
+	board.fit_to(board_area.size)
 
 func _on_clear_pressed() -> void:
 	grid.clear()
@@ -86,21 +89,11 @@ func _has_filled_cell() -> bool:
 	return false
 
 func _on_size_option_item_selected(index: int) -> void:
-	var sizes := [Vector2i(5, 5), Vector2i(10, 10), Vector2i(15, 15)]
-	grid.grid_size = sizes[index]
-	grid.cell_px = NGrid.cell_px_for(grid.grid_size)
+	grid.grid_size = SIZES[index]
 	grid._init_arrays()
-	grid.custom_minimum_size = Vector2(grid.grid_size.x, grid.grid_size.y) * grid.cell_px
-	grid.size = grid.custom_minimum_size
-	grid.queue_redraw()
 	_refresh_hints()
+	_fit_board()
 	_start_new_level()
 
 func _on_back_pressed() -> void:
 	back_requested.emit()
-
-func _on_print_pressed() -> void:
-	var level := grid.get_level_data()
-	print("=== 힌트 확인 ===")
-	print("행: ", level.row_hints)
-	print("열: ", level.col_hints)

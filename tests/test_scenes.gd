@@ -1,8 +1,6 @@
 extends "res://tests/test_case.gd"
 ## 씬 스모크: 로드·인스턴스화·_ready 가 에러 없이 도는지 + 에디터 ↔ 힌트바 연동.
 
-const BOARD := "MarginContainer/VBox/GridArea/Board/"
-
 func _editor() -> Node:
 	var packed: PackedScene = load("res://scenes/Editor.tscn")
 	assert_true(packed != null, "load")
@@ -10,30 +8,30 @@ func _editor() -> Node:
 
 func test_editor_initial_hints_are_zero() -> void:
 	var ed := _editor()
-	var rows: HintBar = ed.get_node(BOARD + "RowHints")
-	var cols: HintBar = ed.get_node(BOARD + "ColHints")
+	var rows: HintBar = ed.board.row_hints
+	var cols: HintBar = ed.board.col_hints
 	assert_eq(rows.hints.size(), 10, "row count")
 	assert_eq(cols.hints.size(), 10, "col count")
 	assert_eq(rows.hints[0], [0], "empty line")
 
 func test_editor_hints_follow_solution() -> void:
 	var ed := _editor()
-	var grid: NGrid = ed.get_node(BOARD + "NGrid")
+	var grid: NGrid = ed.grid
 	grid.solution[0][0] = true
 	grid.solution[0][1] = true
 	grid.solution[0][3] = true
 	grid.solution_changed.emit()
-	var rows: HintBar = ed.get_node(BOARD + "RowHints")
-	var cols: HintBar = ed.get_node(BOARD + "ColHints")
+	var rows: HintBar = ed.board.row_hints
+	var cols: HintBar = ed.board.col_hints
 	assert_eq(rows.hints[0], [2, 1], "row0")
 	assert_eq(cols.hints[3], [1], "col3")
 
 func test_editor_size_switch_resizes_hints() -> void:
 	var ed := _editor()
 	ed._on_size_option_item_selected(0)
-	var grid: NGrid = ed.get_node(BOARD + "NGrid")
-	var rows: HintBar = ed.get_node(BOARD + "RowHints")
-	var cols: HintBar = ed.get_node(BOARD + "ColHints")
+	var grid: NGrid = ed.grid
+	var rows: HintBar = ed.board.row_hints
+	var cols: HintBar = ed.board.col_hints
 	assert_eq(grid.grid_size, Vector2i(5, 5), "size")
 	assert_eq(grid.solution.size(), 5, "rows")
 	assert_eq(rows.hints.size(), 5, "row hints")
@@ -42,11 +40,11 @@ func test_editor_size_switch_resizes_hints() -> void:
 
 func test_editor_clear_resets_hints() -> void:
 	var ed := _editor()
-	var grid: NGrid = ed.get_node(BOARD + "NGrid")
+	var grid: NGrid = ed.grid
 	grid.solution[2][2] = true
 	grid.solution_changed.emit()
 	ed._on_clear_pressed()
-	var rows: HintBar = ed.get_node(BOARD + "RowHints")
+	var rows: HintBar = ed.board.row_hints
 	assert_eq(rows.hints[2], [0])
 
 # ── 저장 (Step 3) ─────────────────────────────────────────
@@ -67,9 +65,9 @@ func cleanup() -> void:
 
 func test_editor_save_writes_level() -> void:
 	var ed := _editor_with_storage()
-	var grid: NGrid = ed.get_node(BOARD + "NGrid")
+	var grid: NGrid = ed.grid
 	grid.solution[0][0] = true
-	ed.get_node("MarginContainer/VBox/TopBar/TitleEdit").text = "점 하나"
+	ed.title_edit.text = "점 하나"
 	ed._on_save_pressed()
 	var levels: Array = ed.storage.list()
 	assert_eq(levels.size(), 1, "saved")
@@ -77,7 +75,7 @@ func test_editor_save_writes_level() -> void:
 
 func test_editor_resave_keeps_id_and_clear_starts_new() -> void:
 	var ed := _editor_with_storage()
-	var grid: NGrid = ed.get_node(BOARD + "NGrid")
+	var grid: NGrid = ed.grid
 	grid.solution[0][0] = true
 	ed._on_save_pressed()
 	grid.solution[1][1] = true
@@ -92,13 +90,13 @@ func test_editor_refuses_empty_grid() -> void:
 	var ed := _editor_with_storage()
 	ed._on_save_pressed()
 	assert_eq(ed.storage.list().size(), 0, "not saved")
-	var status: Label = ed.get_node("MarginContainer/VBox/StatusLabel")
+	var status: Label = ed.status_label
 	assert_true(status.text != "", "status message")
 
 # ── 테스트 플레이 (Step 4) ────────────────────────────────
 func test_editor_play_opens_game_and_back_returns() -> void:
 	var ed := _editor_with_storage()
-	var grid: NGrid = ed.get_node(BOARD + "NGrid")
+	var grid: NGrid = ed.grid
 	grid.solution[0][0] = true
 	ed._on_play_pressed()
 	var game: Node = ed.get_node_or_null("Game")
@@ -116,7 +114,7 @@ func test_editor_play_refuses_empty_grid() -> void:
 # ── 돌아가기 (Step 5) ─────────────────────────────────────
 func test_editor_back_hidden_when_standalone() -> void:
 	var ed := _editor()
-	assert_true(not ed.get_node("MarginContainer/VBox/TopBar/BackBtn").visible)
+	assert_true(not ed.back_btn.visible)
 
 func test_editor_back_emits_signal() -> void:
 	var ed := _editor()
@@ -128,9 +126,9 @@ func test_editor_back_emits_signal() -> void:
 # ── 실기기 피드백 (격자 밀림) ─────────────────────────────
 func test_editor_board_does_not_shift_while_drawing() -> void:
 	var ed := _editor()
-	var grid: NGrid = ed.get_node(BOARD + "NGrid")
-	var cols: HintBar = ed.get_node(BOARD + "ColHints")
-	var rows: HintBar = ed.get_node(BOARD + "RowHints")
+	var grid: NGrid = ed.grid
+	var cols: HintBar = ed.board.col_hints
+	var rows: HintBar = ed.board.row_hints
 	var col_h := cols.custom_minimum_size.y
 	var row_w := rows.custom_minimum_size.x
 	for r in [0, 2, 4, 6, 8]:
@@ -140,3 +138,10 @@ func test_editor_board_does_not_shift_while_drawing() -> void:
 	grid.solution_changed.emit()
 	assert_eq(cols.custom_minimum_size.y, col_h, "col bar height fixed")
 	assert_eq(rows.custom_minimum_size.x, row_w, "row bar width fixed")
+
+func test_editor_touch_targets_and_theme() -> void:
+	var ed := _editor()
+	assert_true(ed.theme == AppTheme.get_theme(), "theme")
+	for b in ed.find_children("*", "BaseButton", true, false):
+		var s: Vector2 = b.get_combined_minimum_size()
+		assert_true(s.x >= AppTheme.BUTTON_MIN and s.y >= AppTheme.BUTTON_MIN, "%s %s" % [b.name, s])

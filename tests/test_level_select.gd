@@ -62,7 +62,7 @@ func test_new_level_opens_editor_and_back_refreshes() -> void:
 	s._on_new_pressed()
 	var ed: Node = s.get_node_or_null("Editor")
 	assert_true(ed != null, "editor opened")
-	assert_true(ed.get_node("MarginContainer/VBox/TopBar/BackBtn").visible, "back shown")
+	assert_true(ed.back_btn.visible, "back shown")
 	ed.storage = st
 	ed.grid.solution[0][0] = true
 	ed._on_save_pressed()

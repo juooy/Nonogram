@@ -132,11 +132,6 @@ func _gui_input(event: InputEvent) -> void:
 		queue_redraw()
 
 # ── 유틸 ──────────────────────────────────────────────────
-## 격자 크기별 셀 픽셀 (에디터·플레이 공통)
-static func cell_px_for(sz: Vector2i) -> float:
-	var n := maxi(sz.x, sz.y)
-	return 60.0 if n <= 5 else (40.0 if n <= 10 else 28.0)
-
 func _cell_at(pos: Vector2) -> Vector2i:
 	return Vector2i(int(pos.x / cell_px), int(pos.y / cell_px))
 
