@@ -103,7 +103,7 @@ func test_editor_play_opens_game_and_back_returns() -> void:
 	ed._on_play_pressed()
 	var game: Node = ed.get_node_or_null("Game")
 	assert_true(game != null, "game opened")
-	assert_eq(game.get_node(BOARD + "NGrid").grid_size, grid.grid_size, "same level")
+	assert_eq(game.grid.grid_size, grid.grid_size, "same level")
 	game._on_back_pressed()
 	assert_true(game.is_queued_for_deletion(), "game closed")
 	assert_true(ed.get_node("MarginContainer").visible, "editor visible")

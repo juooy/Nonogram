@@ -3,43 +3,41 @@ extends Control
 
 signal back_requested
 
-@onready var grid: NGrid = $MarginContainer/VBox/GridArea/Board/NGrid
-@onready var row_hints: HintBar = $MarginContainer/VBox/GridArea/Board/RowHints
-@onready var col_hints: HintBar = $MarginContainer/VBox/GridArea/Board/ColHints
-@onready var title_label: Label = $MarginContainer/VBox/TopBar/TitleLabel
-@onready var pen_btn: Button = $MarginContainer/VBox/TopBar/PenBtn
+@onready var board: Board = %Board
+@onready var grid: NGrid = board.grid
+@onready var board_area: Control = %BoardArea
+@onready var title_label: Label = %TitleLabel
+@onready var fill_btn: Button = %FillBtn
+@onready var mark_btn: Button = %MarkBtn
 @onready var clear_panel: Control = $ClearPanel
-@onready var clear_label: Label = $ClearPanel/Center/Panel/VBox/ClearLabel
+@onready var clear_label: Label = %ClearLabel
 
 var level: LevelData
 
 func _ready() -> void:
+	theme = AppTheme.get_theme()
 	grid.completed.connect(_on_completed)
+	fill_btn.toggled.connect(func(on: bool): if on: grid.pen = 1)
+	mark_btn.toggled.connect(func(on: bool): if on: grid.pen = 2)
+	board_area.resized.connect(_fit_board)
+	clear_panel.visible = false
 	if level == null:
 		title_label.text = "레벨 없음"
 		return
 	title_label.text = level.title
 	grid.mode = NGrid.Mode.PLAY
-	grid.cell_px = NGrid.cell_px_for(level.grid_size)
 	grid.load_level(level)
-	row_hints.cell_px = grid.cell_px
-	col_hints.cell_px = grid.cell_px
-	row_hints.set_hints(level.row_hints)
-	col_hints.set_hints(level.col_hints)
-	_update_pen_label()
-	clear_panel.visible = false
+	board.set_hints(level.row_hints, level.col_hints)
+	fill_btn.button_pressed = true
+	_fit_board()
+
+func _fit_board() -> void:
+	board.fit_to(board_area.size)
 
 func _on_completed() -> void:
 	grid.interactive = false
 	clear_label.text = "클리어!\n%s" % level.title
 	clear_panel.visible = true
-
-func _on_pen_pressed() -> void:
-	grid.pen = 2 if grid.pen == 1 else 1
-	_update_pen_label()
-
-func _update_pen_label() -> void:
-	pen_btn.text = "펜: ■ 채우기" if grid.pen == 1 else "펜: ✕ 표시"
 
 func _on_retry_pressed() -> void:
 	grid.reset_state()

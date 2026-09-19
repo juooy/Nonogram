@@ -1,6 +1,5 @@
 extends "res://tests/test_case.gd"
 
-const BOARD := "MarginContainer/VBox/GridArea/Board/"
 const CELL := 40.0
 
 func _level(rows: Array, title := "테스트") -> LevelData:
@@ -20,7 +19,7 @@ func _game(level: LevelData) -> Node:
 	return add_node(g)
 
 func _grid(g: Node) -> NGrid:
-	return g.get_node(BOARD + "NGrid")
+	return g.grid
 
 func _click(grid: NGrid, c: int, r: int, button := MOUSE_BUTTON_LEFT) -> void:
 	var e := InputEventMouseButton.new()
@@ -41,11 +40,11 @@ func test_start_sets_play_mode_and_hints() -> void:
 	var grid := _grid(g)
 	assert_eq(grid.mode, NGrid.Mode.PLAY, "mode")
 	assert_eq(grid.grid_size, Vector2i(2, 3), "size")
-	var rows: HintBar = g.get_node(BOARD + "RowHints")
-	var cols: HintBar = g.get_node(BOARD + "ColHints")
+	var rows: HintBar = g.board.row_hints
+	var cols: HintBar = g.board.col_hints
 	assert_eq(rows.hints, [[1], [2], [1]], "row hints")
 	assert_eq(cols.hints, [[2], [2]], "col hints")
-	assert_true(g.get_node("MarginContainer/VBox/TopBar/TitleLabel").text.contains("계단"), "title")
+	assert_true(g.title_label.text.contains("계단"), "title")
 	assert_true(not _clear_panel(g).visible, "panel hidden")
 
 func test_solving_shows_clear_panel_and_locks_grid() -> void:
@@ -75,15 +74,28 @@ func test_x_marks_do_not_block_clear() -> void:
 	_click(grid, 1, 1)
 	assert_true(_clear_panel(g).visible)
 
-func test_pen_toggle_switches_primary_to_x() -> void:
+func test_pen_segment() -> void:
 	var g := _game(_level(["#.", ".#"]))
 	var grid := _grid(g)
-	g._on_pen_pressed()
+	assert_true(g.fill_btn.button_pressed, "fill default")
+	g.mark_btn.button_pressed = true
+	assert_true(not g.fill_btn.button_pressed, "exclusive")
+	assert_eq(grid.pen, 2, "pen x")
 	_click(grid, 0, 0)
 	assert_eq(grid.state[0][0], 2, "x mark")
-	g._on_pen_pressed()
+	g.fill_btn.button_pressed = true
 	_click(grid, 1, 0)
 	assert_eq(grid.state[0][1], 1, "fill again")
+
+func test_touch_targets_min_64() -> void:
+	var g := _game(_level(["#"]))
+	for b in g.find_children("*", "BaseButton", true, false):
+		var s: Vector2 = b.get_combined_minimum_size()
+		assert_true(s.x >= AppTheme.BUTTON_MIN and s.y >= AppTheme.BUTTON_MIN, "%s %s" % [b.name, s])
+
+func test_theme_applied() -> void:
+	var g := _game(_level(["#"]))
+	assert_true(g.theme == AppTheme.get_theme())
 
 func test_retry_resets_board() -> void:
 	var g := _game(_level(["#.", ".#"]))
