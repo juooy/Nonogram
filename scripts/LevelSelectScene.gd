@@ -11,6 +11,7 @@ const EditorScene := preload("res://scenes/Editor.tscn")
 var storage := LevelStorage.new()
 
 func _ready() -> void:
+	theme = AppTheme.get_theme()
 	refresh()
 
 # 안드로이드 뒤로가기 (project.godot 의 quit_on_go_back=false 전제).
@@ -44,7 +45,8 @@ func refresh() -> void:
 		btn.name = "Level_" + level.id
 		btn.text = "%s  ·  %d×%d" % [level.title, level.grid_size.x, level.grid_size.y]
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.custom_minimum_size = Vector2(0, 48)
+		btn.theme_type_variation = &"CardButton"
+		btn.custom_minimum_size = Vector2(0, AppTheme.BUTTON_MIN)
 		btn.pressed.connect(_open_game.bind(level))
 		list_box.add_child(btn)
 

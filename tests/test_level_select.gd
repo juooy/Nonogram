@@ -90,3 +90,15 @@ func test_back_closes_top_screen_only() -> void:
 	assert_true(s.go_back(), "handled again")
 	assert_true(ed.is_queued_for_deletion(), "editor closed")
 	assert_true(s.get_node("MarginContainer").visible, "list visible")
+
+# ── UI 스킨 ───────────────────────────────────────────────
+func test_theme_and_card_rows() -> void:
+	var st := _storage()
+	_save(st, "1000_0001", "a")
+	var s := _select(st)
+	assert_true(s.theme == AppTheme.get_theme(), "theme")
+	var row: Button = _rows(s)[0]
+	assert_eq(row.theme_type_variation, &"CardButton", "card")
+	assert_true(row.get_combined_minimum_size().y >= AppTheme.BUTTON_MIN, "row height")
+	var new_btn: Button = s.get_node("MarginContainer/VBox/TopBar/NewBtn")
+	assert_true(new_btn.get_combined_minimum_size().y >= AppTheme.BUTTON_MIN, "new btn")
