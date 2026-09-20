@@ -30,6 +30,7 @@ func _ready() -> void:
 	theme = AppTheme.get_theme()
 	back_btn.visible = show_back
 	grid.solution_changed.connect(_refresh_hints)
+	grid.solution_changed.connect(func(): status_label.text = "")  # 편집하면 지난 검증 결과를 지운다
 	board_area.resized.connect(_fit_board)
 	_setup_size_options()
 	_refresh_hints()

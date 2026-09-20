@@ -184,3 +184,12 @@ func test_save_logic_level_has_no_highlight() -> void:
 	assert_eq(ed.storage.list()[0].quality, "logic", "quality")
 	assert_eq(grid.highlight_cells.size(), 0, "표시 없음")
 	assert_true(ed.status_label.text.contains("정답 1개"), ed.status_label.text)
+
+func test_status_message_cleared_on_edit() -> void:
+	var ed := _editor_with_storage()
+	ed.grid.solution[0][0] = true
+	ed._on_save_pressed()
+	assert_true(ed.status_label.text != "", "저장 후 메시지")
+	ed.grid.solution[3][3] = true
+	ed.grid.solution_changed.emit()
+	assert_eq(ed.status_label.text, "", "편집하면 지워진다")
