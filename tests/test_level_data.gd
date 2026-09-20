@@ -57,3 +57,12 @@ func test_json_roundtrip_keeps_int_hints() -> void:
 	var r := LevelData.from_dict(parsed)
 	assert_eq(r.row_hints, d.row_hints, "row_hints")
 	assert_eq(r.play_count, 0, "play_count")
+
+func test_quality_roundtrip() -> void:
+	var d := LevelData.from_solution(_grid(["#."]), Vector2i(2, 1))
+	assert_eq(d.quality, "unknown", "기본값")
+	d.quality = "logic"
+	assert_eq(LevelData.from_dict(d.to_dict()).quality, "logic", "왕복")
+	var old := d.to_dict()
+	old.erase("quality")
+	assert_eq(LevelData.from_dict(old).quality, "unknown", "옛 파일")

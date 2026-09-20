@@ -7,6 +7,7 @@ var solution: Array = []   # Array[Array[bool]]
 var row_hints: Array = []  # Array[Array[int]]
 var col_hints: Array = []  # Array[Array[int]]
 var play_count: int = 0
+var quality: String = "unknown"  # Solver.analyze 판정: logic/unique/multiple/unknown
 
 static func from_solution(sol: Array, sz: Vector2i) -> LevelData:
 	var d = LevelData.new()
@@ -53,6 +54,7 @@ func to_dict() -> Dictionary:
 		"row_hints": row_hints,
 		"col_hints": col_hints,
 		"play_count": play_count,
+		"quality": quality,
 	}
 
 static func from_dict(d: Dictionary) -> LevelData:
@@ -65,6 +67,7 @@ static func from_dict(d: Dictionary) -> LevelData:
 	level.row_hints = _to_int_lines(d.get("row_hints", []))
 	level.col_hints = _to_int_lines(d.get("col_hints", []))
 	level.play_count = int(d.get("play_count", 0))
+	level.quality = d.get("quality", "unknown")
 	return level
 
 # JSON 파싱은 숫자를 float 로 돌려주므로 힌트를 int 로 되돌린다
