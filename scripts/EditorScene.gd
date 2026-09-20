@@ -4,6 +4,13 @@ signal back_requested  # LevelSelect 에서 열었을 때 돌아가기
 
 const GameScene := preload("res://scenes/Game.tscn")
 const SIZES := [Vector2i(5, 5), Vector2i(10, 10), Vector2i(15, 15)]
+## 저장 후 상태 메시지에 붙는 검증 결과
+const QUALITY_NOTE := {
+	"logic": " · 정답 1개",
+	"unique": " · 정답 1개(추측 필요)",
+	"multiple": " · ⚠ 정답이 여러 개입니다 (표시된 칸)",
+	"unknown": " · 검증 상한 초과(미검증)",
+}
 
 @onready var board: Board = %Board
 @onready var grid: NGrid = board.grid
@@ -76,12 +83,16 @@ func _on_save_pressed() -> void:
 	var level := grid.get_level_data()
 	level.id = current_id
 	level.title = title_edit.text.strip_edges() if title_edit.text.strip_edges() != "" else "무제"
+	var result := Solver.analyze(level)
+	level.quality = result.quality
 	var err := storage.save(level)
 	if err != OK:
 		status_label.text = "저장 실패 (%s)" % error_string(err)
 		return
 	current_id = level.id
-	status_label.text = "저장됨: %s" % level.title
+	grid.highlight_cells.assign(result.ambiguous_cells)
+	grid.queue_redraw()
+	status_label.text = "저장됨: %s%s" % [level.title, QUALITY_NOTE[level.quality]]
 
 ## 현재 그림으로 테스트 플레이 — 에디터 상태는 그대로 두고 위에 Game 을 띄운다
 func _on_play_pressed() -> void:

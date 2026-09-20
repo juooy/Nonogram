@@ -10,6 +10,7 @@ var solution: Array = []  # Array[Array[bool]]  — 정답 (EDIT에서 작성)
 var state: Array = []     # Array[Array[int]]   — 0 빈칸 1 채움 2 X표시 (PLAY)
 
 var interactive: bool = true  # false 면 입력 무시 (클리어 후 잠금)
+var highlight_cells: Array[Vector2i] = []  # 해가 갈리는 칸 (편집하면 지워진다)
 var pen: int = 1  # PLAY 모드 주 입력(좌클릭·터치)이 놓는 값: 1 채움 / 2 X표시. 우클릭은 항상 X
 
 var _drag_value: int = -1  # 드래그 중 덮어쓸 값
@@ -60,6 +61,9 @@ func _draw() -> void:
 		for c in grid_size.x:
 			_draw_cell(r, c)
 	_draw_grid_lines()
+	for cell in highlight_cells:
+		var rect := Rect2(cell.x * cell_px, cell.y * cell_px, cell_px, cell_px)
+		draw_rect(rect.grow(-2.0), AppTheme.MARK, false, 3.0)
 
 func _draw_cell(r: int, c: int) -> void:
 	var rect := Rect2(c * cell_px, r * cell_px, cell_px, cell_px)
@@ -107,6 +111,7 @@ func _gui_input(event: InputEvent) -> void:
 			if not _in_bounds(cell):
 				return
 			if mode == Mode.EDIT:
+				highlight_cells.clear()
 				solution[cell.y][cell.x] = not solution[cell.y][cell.x]
 				_drag_value = 1 if solution[cell.y][cell.x] else 0
 				solution_changed.emit()

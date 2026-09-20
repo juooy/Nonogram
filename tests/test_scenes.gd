@@ -161,3 +161,26 @@ func test_editor_load_level_sets_size_and_header() -> void:
 	ed._on_clear_pressed()
 	assert_eq(ed.current_id, "", "new level after clear")
 	assert_eq(ed.header_label.text, "레벨 만들기", "header new")
+
+# ── 해 유일성 검증 (저장 시) ──────────────────────────────
+func test_save_records_quality_and_highlights_ambiguous() -> void:
+	var ed := _editor_with_storage()
+	var grid: NGrid = ed.grid
+	# 2칸 대각선 → 반대 대각선도 정답이라 multiple
+	grid.solution[0][0] = true
+	grid.solution[1][1] = true
+	ed._on_save_pressed()
+	var level: LevelData = ed.storage.list()[0]
+	assert_eq(level.quality, "multiple", "quality saved")
+	assert_eq(grid.highlight_cells.size(), 4, "모호한 칸 표시")
+	assert_true(ed.status_label.text.contains("여러 개"), ed.status_label.text)
+
+func test_save_logic_level_has_no_highlight() -> void:
+	var ed := _editor_with_storage()
+	var grid: NGrid = ed.grid
+	for c in 10:
+		grid.solution[0][c] = true  # 한 줄 가득 → 논리로 풀림
+	ed._on_save_pressed()
+	assert_eq(ed.storage.list()[0].quality, "logic", "quality")
+	assert_eq(grid.highlight_cells.size(), 0, "표시 없음")
+	assert_true(ed.status_label.text.contains("정답 1개"), ed.status_label.text)

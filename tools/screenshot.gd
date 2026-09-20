@@ -2,7 +2,7 @@ extends SceneTree
 ## 씬 화면 캡처 (시각 확인용). --headless 없이 실행해야 렌더링된다.
 ## godot --path . -s res://tools/screenshot.gd -- <scene> <out.png> [WxH] [solve]
 ##   WxH: 창 크기 (예: 1556x648 = Pixel 5a 비율). 생략 시 프로젝트 기본 1152x648
-##   Editor 씬: 하트 샘플을 그린다
+##   Editor 씬: 하트 샘플을 그린다. ambiguous 플래그로 해가 갈리는 그림을 저장해 경고 표시
 ##   LevelSelect 씬: 임시 폴더에 샘플 레벨 3개를 넣어 목록을 찍는다 (끝나면 삭제). confirm 플래그로 삭제 확인 패널
 ##   Game 씬: 하트 샘플 레벨로 시작해 일부를 칠한다. solve 를 주면 끝까지 풀어 클리어 화면을 찍는다
 
@@ -45,8 +45,14 @@ func _initialize() -> void:
 
 	var grid := node.find_child("NGrid", true, false) as NGrid
 	if grid and grid.mode == NGrid.Mode.EDIT:
-		grid.solution = _heart()
-		grid.solution_changed.emit()
+		if "ambiguous" in args:  # 해가 갈리는 그림(대각선)을 그리고 저장해 경고를 띄운다
+			grid.solution[1][1] = true
+			grid.solution[2][2] = true
+			grid.solution_changed.emit()
+			node._on_save_pressed()
+		else:
+			grid.solution = _heart()
+			grid.solution_changed.emit()
 	elif grid:
 		var rows := HEART.size() if solve else 4
 		for r in rows:

@@ -6,6 +6,12 @@ const GameScene := preload("res://scenes/Game.tscn")
 const EditorScene := preload("res://scenes/Editor.tscn")
 const EDIT_ICON := preload("res://assets/icons/edit.svg")
 const TRASH_ICON := preload("res://assets/icons/trash.png")
+## 목록 행에 붙는 검증 배지 (logic 은 배지 없음)
+const QUALITY_BADGE := {
+	"unique": "  ·  추측 필요",
+	"multiple": "  ·  ⚠ 정답 여러 개",
+	"unknown": "  ·  미검증",
+}
 
 @onready var list_box: VBoxContainer = $MarginContainer/VBox/Scroll/List
 @onready var empty_label: Label = $MarginContainer/VBox/EmptyLabel
@@ -56,7 +62,7 @@ func _make_row(level: LevelData) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.name = "Level_" + level.id
 	row.add_theme_constant_override("separation", 8)
-	var play := _row_button("PlayBtn", "%s  ·  %d×%d" % [level.title, level.grid_size.x, level.grid_size.y], null)
+	var play := _row_button("PlayBtn", "%s  ·  %d×%d%s" % [level.title, level.grid_size.x, level.grid_size.y, QUALITY_BADGE.get(level.quality, "")], null)
 	play.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	play.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	play.pressed.connect(_open_game.bind(level))

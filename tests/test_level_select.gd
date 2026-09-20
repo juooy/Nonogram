@@ -163,3 +163,13 @@ func test_edit_opens_editor_with_level_and_overwrites() -> void:
 	assert_eq(st.load_level("1000_0001").title, "고친 제목", "saved")
 	ed._on_back_pressed()
 	assert_true(_play(_rows(s)[0]).text.contains("고친 제목"), "list refreshed")
+
+func test_quality_badge_in_row() -> void:
+	var st := _storage()
+	var lv := LevelData.from_solution([[true, false], [false, true]], Vector2i(2, 2))
+	lv.id = "1000_0001"
+	lv.title = "대각선"
+	lv.quality = "multiple"
+	st.save(lv)
+	var s := _select(st)
+	assert_true(_play(_rows(s)[0]).text.contains("정답 여러 개"), _play(_rows(s)[0]).text)

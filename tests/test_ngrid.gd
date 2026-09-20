@@ -128,3 +128,9 @@ func test_reset_state_clears_play_marks() -> void:
 	_release(g)
 	g.reset_state()
 	assert_eq(g.state, [[0, 0], [0, 0]])
+
+func test_highlight_cells_cleared_on_edit() -> void:
+	var g := _make(NGrid.Mode.EDIT)
+	g.highlight_cells = [Vector2i(0, 0), Vector2i(1, 1)]
+	_press(g, 2, 2)
+	assert_eq(g.highlight_cells.size(), 0)
